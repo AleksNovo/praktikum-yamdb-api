@@ -11,26 +11,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from reviews.models import Category, Genre, Title
 from users.models import User
+
 from .filters import TitleFilter
 from .mixins import CreateDestroyListViewSet
-from .permissions import (
-    IsAdmin,
-    IsAdminOrReadOnly,
-    IsAuthorOrStaffOrAuthenticatedCreateOrReadOnly,
-)
-from .serializers import (
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    TitlePostSerializer,
-    TitleSerializer,
-    UserSerializer,
-    UserSignUpSerializer,
-)
+from .permissions import (IsAdmin, IsAdminOrReadOnly,
+                          IsAuthorOrStaffOrAuthenticatedCreateOrReadOnly)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitlePostSerializer, TitleSerializer, UserSerializer,
+                          UserSignUpSerializer)
 from .utils import check_confirmation_code
 
 

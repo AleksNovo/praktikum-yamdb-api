@@ -2,9 +2,9 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
 from reviews.models import Category, Comments, Genre, GenreTitle, Review, Title
 from users.models import User
+
 from .utils import get_confirmation_code, send_confirmation_email
 
 
@@ -50,11 +50,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
 
-    def validate_role(self, role):
-        if not self.context['request'].user.is_admin:
-            role = self.instance.role
-
-        return role
+    def __str__(self):
+        return self.username
 
 
 class CategorySerializer(serializers.ModelSerializer):
