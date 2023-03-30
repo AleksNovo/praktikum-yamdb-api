@@ -144,10 +144,3 @@ dmypy.json
 .history/
 
 .mypy_cache
-
-# папки со статикой и медиа
-static/admin/
-static/rest_framework/
-posts/static/
-media/
-
