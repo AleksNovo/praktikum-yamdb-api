@@ -1,77 +1,145 @@
-# yamdb_final
-yamdb_final
- 
-# YaMDb
- 
-YaMDb - база данных, которая собирает отзывы о различных произведениях. Произведения делятся на категории: «Книги», «Фильмы», «Музыка». При необходимости, список категорий может быть расширен администратором. Пользователи могут оставлять рецензии на произведения и ставить оценки.
- 
-Проект реализован на `Django` и `DjangoRestFramework`. Доступ к данным реализован через API-интерфейс. Документация к API написана с использованием `Redoc`.
- 
-## Особенности реализации
- 
-- Проект завернут в Docker-контейнеры;
-- Реализован workflow через GitHubActions: тестирование, обновление образа на DockerHub, автоматический деплой на сервер, отправление сообщения в Telegram об успешном выполнении всех шагов workflow;
-- Проект развернут на сервере <http://51.250.79.197/redoc/>
- 
-## Развертывание проекта
- 
-### Развертывание на локальном сервере
- 
-1. Установите на сервере `docker` и `docker-dompose`.
-2. Создайте файл `/infra/.env`. Шаблон для заполнения файла нахоится в `/infra/.env.example`.
-3. Выполните команду `docker-compose up -d --buld`.
-4. Выполните миграции `docker-compose exec web python manage.py migrate`.
-5. Создайте суперюзера `docker-compose exec web python manage.py createsuperuser`.
-6. Соберите статику `docker-compose exec web python manage.py collectstatic --no-input`.
-7. При необходимости заполните базу `docker-compose exec web python manage.py loaddata fixtures.json`.
-8. Документация к API находится по адресу: <http://localhost/redoc/>.
- 
-### Настройка проекта для развертывания на удаленном сервере
- 
-1. Установите на сервере `docker` и `docker-dompose`.
-2. Локально отредактируйте файл `infra/nginx.conf`, в строке `server_name` впишите IP-адрес сервера.
-3. Скопируйте файлы `docker-compose.yaml` и `nginx/defult.conf` из директории `infra` на сервер:
- 
-```bash
-    scp docker-compose.yml <username>@<host>:/home/<username>/docker-compose.yaml
-    scp default.conf <username>@<host>:/home/<username>/nginx/default.conf
+# YaMDb REST API
+![Workflow status badge](https://github.com/AleksNovo/yamdb_final/actions/workflows/yamdb_workflow.yml/badge.svg)
+
+Учебный командный проект Яндекс Практикум (курс Python-разработчик).
+
+## Описание
+Сервис YaMDb собирает отзывы пользователей на произведения (фильмы, книги и музыка). Сами произведения в YaMDb не хранятся, здесь нельзя посмотреть фильм или послушать музыку.
+
+В проекте реализована контейнеризация с помощью Docker и Docker Compose, а также CI/CD через GitHub Actions.
+
+## Технологии
+[![Python](https://img.shields.io/badge/Python-3.7-3776AB?logo=python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-2.2-092E20?&logo=django)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-grey?logo=postgresql)](https://www.postgresql.org/)
+[![Django REST Framework](https://img.shields.io/badge/Django_REST_Framework-grey?logo=django)](https://www.django-rest-framework.org/)
+[![JSON Web Tokens](https://img.shields.io/badge/JSON_Web_Tokens-grey?logo=jsonwebtokens)](https://jwt.io/)
+[![Gunicorn](https://img.shields.io/badge/Gunicorn-grey?logo=gunicorn)](https://gunicorn.org/)
+[![nginx](https://img.shields.io/badge/nginx-grey?logo=nginx)](https://nginx.org/)
+[![Docker](https://img.shields.io/badge/Docker-grey?logo=docker)](https://www.docker.com/)
+[![Docker Compose](https://img.shields.io/badge/Docker_Compose-grey?logo=docker)](https://docs.docker.com/compose/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-grey?logo=githubactions)](https://github.com/features/actions)
+
+## Авторы
+- @epanchincev - регистрация и аутентификация, подтверждение через email, права доступа;
+- @AuXoNej - произведения, категории, жанры;
+- @AleksNovo - отзывы, комментарии, рейтинг произведений, контейнеризация и инфраструктура.
+
+## Доступные эндпоинты
+- `api/v1/auth/signup/` (POST): регистрация нового пользователя;
+- `api/v1/auth/token/` (POST): получение JWT-токена;
+- `api/v1/users/` (GET, POST): получение списка всех пользователей или добавление нового;
+- `api/v1/users/me/` (GET, PATCH): получение или редактирование данных своей учетной записи;
+- `api/v1/users/{username}/` (GET, PATCH, DELETE): получение, редактирование или удаление пользователя по `username`;
+- `api/v1/categories/` (GET, POST): получение списка всех категорий или добавление новой;
+- `api/v1/categories/{slug}` (DELETE): удаление категории по `slug`;
+- `api/v1/genres/` (GET, POST): получение списка всех жанров или добавление нового;
+- `api/v1/genres/{slug}` (DELETE): удаление жанра по `slug`;
+- `api/v1/titles/` (GET, POST): получение списка всех произведений или добавление нового;
+- `api/v1/titles/{title_id}/` (GET, PATCH, DELETE): получение, редактирование или удаление произведения по `id`;
+- `api/v1/titles/{title_id}/reviews/` (GET, POST): получение списка всех отзывов или добавление нового на произведение с  `id=title_id`;
+- `api/v1/titles/{title_id}/reviews/{review_id}/` (GET, PATCH, DELETE): получение, редактирование или удаление отзыва по `id` на произведение с `id=title_id`;
+- `api/v1/titles/{title_id}/reviews/{review_id}/comments/` (GET, POST): получение списка всех комментариев или добавление нового к отзыву с `id=review_id`;
+- `api/v1/titles/{title_id}/reviews/{review_id}/comments/{comment_id}/` (GET, PATCH, DELETE): получение, редактирование или удаление комментария по `id` к отзыву с `id=review_id`.
+
+## Документация к API
+Подробная документация к API будет доступна после запуска проекта по эндпоинту:
 ```
- 
-4. Добавьте в Secrets GitHub следующие переменные:
- 
-```bash
-    DB_ENGINE=django.db.backends.postgresql указываем, что работаем с postgresql
-    DB_NAME=имя базы данных
-    POSTGRES_USER=логин для подключения к базе данных
-    POSTGRES_PASSWORD=# пароль для подключения к БД 
-    DB_HOST=db
-    DB_PORT=5432
- 
-    DOCKER_PASSWORD=пароль от DockerHub
-    DOCKER_USERNAME=имя пользователя
- 
-    USER=username для подключения к серверу
-    HOST=IP сервера
-    PASSPHRASE=пароль для сервера, если он установлен
-    SSH_KEY=ваш SSH ключ (для получения команда: cat ~/.ssh/id_rsa)
- 
-    TELEGRAM_TO=ID чата, в который придет сообщение
-    TELEGRAM_TOKEN=токен вашего бота
+redoc/
 ```
- 
-5. Выполните команды:
- 
+
+## Запуск проекта в Docker-контейнерах
+Клонировать репозиторий и перейти в директорию `infra/`:
 ```bash
-    git add .
-    git commit -m 'ваш комментарий'
-    git push
+git clone https://github.com/bvsvrvb/praktikum-yamdb-api.git
 ```
- 
-6. После выполнения команды `git push` и выполнения всех шагов `workflow`, проект будет развернут на удаленном сервере.
-7. Для окончательной настройки, зайдите на уделенный сервер и выполните миграции, создайте суперюзера, соберите статику и заполните базу (см. шаги 4-7 из описания развертывания проекта на локальном сервере).
- 
-## Автор
- 
- Александр Новожилов
- 
-[![Django-app workflow](https://github.com/alexnovo/yamdb_final/actions/workflows/yamdb_workflow.yml/badge.svg)](https://github.com/alexnovo/yamdb_final/actions/workflows/yamdb_workflow.yml)
+```bash
+cd praktikum-yamdb-api/infra
+```
+
+Создать `.env` файл с переменными окружения:
+```
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=<имя базы данных postgres>
+DB_USER=<пользователь бд>
+DB_PASSWORD=<пароль>
+DB_HOST=db
+DB_PORT=5432
+```
+
+Собрать и запустить контейнеры:
+```bash
+docker-compose up
+```
+
+Создать миграции внутри контейнера `web`:
+ ```bash
+ sudo docker-compose exec web python manage.py makemigrations
+ ```
+
+Выполнить миграции внутри контейнера `web`:
+ ```bash
+ sudo docker-compose exec web python manage.py migrate
+ ```
+
+Собрать статику проекта внутри контейнера `web`:
+ ```bash
+ sudo docker-compose exec web python manage.py collectstatic --no-input
+ ```  
+
+Создать суперпользователя для админ-панели внутри контейнера `web`:
+ ```bash
+ sudo docker-compose exec web python manage.py createsuperuser
+ ```
+
+## CI/CD GitHub Actions
+
+### Workflow состоит из четырёх шагов:
+
+   1. Проверка кода тестами.
+   2. Сборка и публикация образа на DockerHub.
+   3. Автоматический деплой и запуск контейнеров на удаленном сервере.
+   4. Отправка уведомления в телеграм-чат.
+
+### Для работы с Workflow GitHub Actions необходимо добавить в GitHub Secrets переменные окружения:
+```
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=<имя базы данных postgres>
+DB_USER=<пользователь бд>
+DB_PASSWORD=<пароль>
+DB_HOST=db
+DB_PORT=5432
+
+DOCKER_PASSWORD=<пароль от DockerHub>
+DOCKER_USERNAME=<имя пользователя>
+
+USER=<username для подключения к серверу>
+HOST=<IP сервера>
+PASSPHRASE=<пароль для сервера, если он установлен>
+SSH_KEY=<ваш SSH ключ (для получения команда: cat ~/.ssh/id_rsa)>
+
+TELEGRAM_TO=<ID чата, в который придет сообщение>
+TELEGRAM_TOKEN=<токен вашего бота>
+```
+
+### И подготовить удаленный сервер:
+Выполнить вход на удаленный сервер:
+```bash
+ssh <username>@<host>
+```
+
+Установить Docker на сервере:
+```bash
+sudo apt install docker.io 
+```
+
+Установить Docker Compose на сервере:
+```bash
+sudo apt install docker-compose
+```
+
+Скопировать файлы `docker-compose.yaml` и `default.conf` на сервер:
+```bash
+scp docker-compose.yaml <username>@<host>:/home/<username>/
+scp default.conf <username>@<host>:/home/<username>/nginx/
+```
